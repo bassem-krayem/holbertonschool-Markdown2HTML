@@ -4,6 +4,7 @@ this script is to convert the marcdown syntax to html syntax
 """
 
 import sys
+import os
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -13,8 +14,8 @@ if __name__ == "__main__":
     fileName = sys.argv[1]
     outputFileName = sys.argv[2]
 
-    if not fileName:
-        print("Missing <filename>")
+    if not os.path.isfile(fileName):
+        print("Missing " + fileName)
         sys.exit(1)
     else:
         sys.exit(0)
