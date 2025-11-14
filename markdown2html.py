@@ -70,11 +70,11 @@ def mainFunction(fileName, outputFileName):
             # paragraphs
             if line.strip() and not line.startswith(("#", "-", "*")):
                 paragraph_lines.append(line)
+                paragraph_lines.append("<br/>")
                 in_paragraph = True
             if in_paragraph and (not line.strip() or
                                  line.startswith(("#", "-", "*"))):
-                for p_line in range(len(paragraph_lines) - 1):
-                    paragraph_lines.append("<br/>")
+                paragraph_lines.pop()
                 html_lines.append(f"<p>\n{'\n'.join(paragraph_lines)}\n</p>")
                 paragraph_lines = []
                 in_paragraph = False
@@ -87,8 +87,7 @@ def mainFunction(fileName, outputFileName):
                 html_lines.extend(convert_ordered_list(markdown_list_lines))
 
         if in_paragraph:
-            for p_line in range(len(paragraph_lines) - 1):
-                paragraph_lines.append("<br/>")
+            paragraph_lines.pop()
             html_lines.append(f"<p>\n{'\n'.join(paragraph_lines)}\n</p>")
 
     with open(outputFileName, "w") as file:
