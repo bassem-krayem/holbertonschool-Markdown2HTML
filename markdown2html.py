@@ -45,6 +45,14 @@ def mainFunction(fileName, outputFileName):
     with open(fileName, "r") as file:
         for line in file:
             line = line.strip()
+            # Bold
+            if re.search(r"\*\*.*?\*\*", line):
+                line = re.sub(r"(\*\*)(.*?)(\*\*)", r"<b>\2</b>", line)
+
+            # emphasis text
+            if re.search(r"__.*?__", line):
+                line = re.sub(r"(__)(.*?)(__)", r"<em>\2</em>", line)
+
             # headings
             if line.startswith("#"):
                 html_lines.append(convertHeadings(line))
@@ -78,6 +86,7 @@ def mainFunction(fileName, outputFileName):
                 html_lines.append(f"<p>{''.join(paragraph_lines)}</p>")
                 paragraph_lines = []
                 in_paragraph = False
+
         # outside the loop
         if in_un or in_or:
             if in_un:
