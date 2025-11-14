@@ -14,20 +14,33 @@ def convertHeadings(line):
         return (f"<h{headingLevel}>"
                 f"{line[headingLevel:].strip()}</h{headingLevel}>")
     else:
-        return line  # Return the line unchanged if it's not a heading
+        return line
+
+
+def convert_unordered_list(marcdown_list):
+    html_list = ["<ul>"]
+    for list_item in marcdown_list:
+        html_list.append(f"<li>{list_item[1:].strip()}</li>")
+    html_list.append("</ul>")
+    return html_list
 
 
 def mainFunction(fileName, outputFileName):
-    htmlList = []
+    html_lines = []
+    markdown_list_lines = []
 
     with open(fileName, "r") as file:
         for line in file:
             line = line.strip()
             if line.startswith("#"):
-                htmlList.append(convertHeadings(line))
+                html_lines.append(convertHeadings(line))
+            elif line.startswith("-"):
+                markdown_list_lines.append(line)
+
+    html_lines.extend(convert_unordered_list(markdown_list_lines))
 
     with open(outputFileName, "w") as file:
-        file.write("\n".join(htmlList))
+        file.write("\n".join(html_lines))
 
 
 if __name__ == "__main__":
