@@ -61,11 +61,11 @@ def mainFunction(fileName, outputFileName):
                 line = re.sub(r"(\(\(.*?\)\))", remove_C_and_c, line)
             # Bold
             if re.search(r"\*\*.*?\*\*", line):
-                line = re.sub(r"(\*\*)(.*?)(\*\*)", r"<b>\2</b>", line)
+                line = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", line)
 
             # emphasis text
             if re.search(r"__.*?__", line):
-                line = re.sub(r"(__)(.*?)(__)", r"<em>\2</em>", line)
+                line = re.sub(r"__(.+?)__", r"<em>\1</em>", line)
 
             # headings
             if line.startswith("#"):
