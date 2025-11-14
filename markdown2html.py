@@ -11,7 +11,7 @@ import hashlib
 
 def convertHeadings(line):
     headingLevel = line.count("#")
-    
+
     if headingLevel >= 1 and headingLevel <= 6:
         return (f"<h{headingLevel}>"
                 f"{line[headingLevel:].strip()}</h{headingLevel}>")
@@ -55,7 +55,9 @@ def mainFunction(fileName, outputFileName):
 
             match = re.search(r"\(\((.*?)\)\)", line)
             if match:
-                remove_C_and_c = match.group(1).replace('C', '').replace('c', '')
+                remove_C_and_c = (
+                    match.group(1).replace('C', '').replace('c', '')
+                )
                 line = re.sub(r"(\(\(.*?\)\))", remove_C_and_c, line)
             # Bold
             if re.search(r"\*\*.*?\*\*", line):
