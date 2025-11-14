@@ -28,16 +28,26 @@ def convert_unordered_list(marcdown_list):
 def mainFunction(fileName, outputFileName):
     html_lines = []
     markdown_list_lines = []
+    in_list = False
 
     with open(fileName, "r") as file:
         for line in file:
             line = line.strip()
             if line.startswith("#"):
                 html_lines.append(convertHeadings(line))
-            elif line.startswith("-"):
-                markdown_list_lines.append(line)
 
-    html_lines.extend(convert_unordered_list(markdown_list_lines))
+            if line.startswith('-'):
+                markdown_list_lines.append(line)
+                in_list = True
+
+            if in_list and not line.startswith('-'):
+                html_lines.extend(convert_unordered_list(markdown_list_lines))
+                markdown_list_lines = []
+                in_list = False
+
+        # outside the loop
+        if in_list:
+            html_lines.extend(convert_unordered_list(markdown_list_lines))
 
     with open(outputFileName, "w") as file:
         file.write("\n".join(html_lines))
