@@ -36,7 +36,8 @@ def convert_ordered_list(marcdown_list):
 def mainFunction(fileName, outputFileName):
     html_lines = []
     markdown_list_lines = []
-    in_list = False
+    in_un = False
+    in_or = False
 
     with open(fileName, "r") as file:
         for line in file:
@@ -48,29 +49,28 @@ def mainFunction(fileName, outputFileName):
             # unordered lists
             if line.startswith('-'):
                 markdown_list_lines.append(line)
-                in_list = True
+                in_un = True
 
-            if in_list and not line.startswith('-'):
+            if in_un and not line.startswith('-'):
                 html_lines.extend(convert_unordered_list(markdown_list_lines))
                 markdown_list_lines = []
-                in_list = False
+                in_un = False
 
             # ordered lists
             if line.startswith('*'):
                 markdown_list_lines.append(line)
-                in_list = True
-            if in_list and not line.startswith('*'):
+                in_or = True
+            if in_or and not line.startswith('*'):
                 html_lines.extend(convert_ordered_list(markdown_list_lines))
                 markdown_list_lines = []
-                in_list = False
+                in_or = False
 
         # outside the loop
-        if in_list:
-            if markdown_list_lines[0].startswith('-'):
+        if in_un or in_or:
+            if in_un:
                 html_lines.extend(convert_unordered_list(markdown_list_lines))
-            elif markdown_list_lines[0].startswith('*'):
+            if in_or:
                 html_lines.extend(convert_ordered_list(markdown_list_lines))
-
     with open(outputFileName, "w") as file:
         file.write("\n".join(html_lines))
 
