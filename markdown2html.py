@@ -36,8 +36,10 @@ def convert_ordered_list(marcdown_list):
 def mainFunction(fileName, outputFileName):
     html_lines = []
     markdown_list_lines = []
+    paragraph_lines = []
     in_un = False
     in_or = False
+    in_paragraph = False
 
     with open(fileName, "r") as file:
         for line in file:
@@ -65,12 +67,30 @@ def mainFunction(fileName, outputFileName):
                 markdown_list_lines = []
                 in_or = False
 
+            # paragraphs
+            if line.strip() and not line.startswith(("#", "-", "*")):
+                paragraph_lines.append(line)
+                in_paragraph = True
+            if in_paragraph and (not line.strip() or
+                                 line.startswith(("#", "-", "*"))):
+                for p_line in range(len(paragraph_lines) - 1):
+                    paragraph_lines[p_line] += "<br/>"
+                html_lines.append(f"<p>\n{'\n'.join(paragraph_lines)}\n</p>")
+                paragraph_lines = []
+                in_paragraph = False
+
         # outside the loop
         if in_un or in_or:
             if in_un:
                 html_lines.extend(convert_unordered_list(markdown_list_lines))
             if in_or:
                 html_lines.extend(convert_ordered_list(markdown_list_lines))
+
+        if in_paragraph:
+            for p_line in range(len(paragraph_lines) - 1):
+                paragraph_lines[p_line] += "<br/>"
+            html_lines.append(f"<p>\n{'\n'.join(paragraph_lines)}\n</p>")
+
     with open(outputFileName, "w") as file:
         file.write("\n".join(html_lines))
 
