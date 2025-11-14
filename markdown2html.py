@@ -6,11 +6,12 @@ this script is to convert the marcdown syntax to html syntax
 import sys
 import os
 import re
+import hashlib
 
 
 def convertHeadings(line):
     headingLevel = line.count("#")
-
+    
     if headingLevel >= 1 and headingLevel <= 6:
         return (f"<h{headingLevel}>"
                 f"{line[headingLevel:].strip()}</h{headingLevel}>")
@@ -45,6 +46,17 @@ def mainFunction(fileName, outputFileName):
     with open(fileName, "r") as file:
         for line in file:
             line = line.strip()
+
+            # Hash
+            match = re.search(r"\[\[(.*?)\]\]", line)
+            if match:
+                hash_object = hashlib.md5(match.group(1).encode()).hexdigest()
+                line = re.sub(r"(\[\[.*?\]\])", hash_object, line)
+
+            match = re.search(r"\(\((.*?)\)\)", line)
+            if match:
+                remove_C_and_c = match.group(1).replace('C', '').replace('c', '')
+                line = re.sub(r"(\(\(.*?\)\))", remove_C_and_c, line)
             # Bold
             if re.search(r"\*\*.*?\*\*", line):
                 line = re.sub(r"(\*\*)(.*?)(\*\*)", r"<b>\2</b>", line)
