@@ -25,6 +25,14 @@ def convert_unordered_list(marcdown_list):
     return html_list
 
 
+def convert_ordered_list(marcdown_list):
+    html_list = ["<ol>"]
+    for list_item in marcdown_list:
+        html_list.append(f"<li>{list_item[1:].strip()}</li>")
+    html_list.append("</ol>")
+    return html_list
+
+
 def mainFunction(fileName, outputFileName):
     html_lines = []
     markdown_list_lines = []
@@ -33,9 +41,11 @@ def mainFunction(fileName, outputFileName):
     with open(fileName, "r") as file:
         for line in file:
             line = line.strip()
+            # headings
             if line.startswith("#"):
                 html_lines.append(convertHeadings(line))
 
+            # unordered lists
             if line.startswith('-'):
                 markdown_list_lines.append(line)
                 in_list = True
@@ -45,9 +55,21 @@ def mainFunction(fileName, outputFileName):
                 markdown_list_lines = []
                 in_list = False
 
+            # ordered lists
+            if line.startswith('*'):
+                markdown_list_lines.append(line)
+                in_list = True
+            if in_list and not line.startswith('*'):
+                html_lines.extend(convert_ordered_list(markdown_list_lines))
+                markdown_list_lines = []
+                in_list = False
+
         # outside the loop
         if in_list:
-            html_lines.extend(convert_unordered_list(markdown_list_lines))
+            if markdown_list_lines[0].startswith('-'):
+                html_lines.extend(convert_unordered_list(markdown_list_lines))
+            elif markdown_list_lines[0].startswith('*'):
+                html_lines.extend(convert_ordered_list(markdown_list_lines))
 
     with open(outputFileName, "w") as file:
         file.write("\n".join(html_lines))
