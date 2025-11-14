@@ -74,7 +74,7 @@ def mainFunction(fileName, outputFileName):
             if in_paragraph and (not line.strip() or
                                  line.startswith(("#", "-", "*"))):
                 for p_line in range(len(paragraph_lines) - 1):
-                    paragraph_lines[p_line] += "<br/>"
+                    paragraph_lines.append("<br/>")
                 html_lines.append(f"<p>\n{'\n'.join(paragraph_lines)}\n</p>")
                 paragraph_lines = []
                 in_paragraph = False
@@ -88,7 +88,7 @@ def mainFunction(fileName, outputFileName):
 
         if in_paragraph:
             for p_line in range(len(paragraph_lines) - 1):
-                paragraph_lines[p_line] += "<br/>"
+                paragraph_lines.append("<br/>")
             html_lines.append(f"<p>\n{'\n'.join(paragraph_lines)}\n</p>")
 
     with open(outputFileName, "w") as file:
