@@ -1,165 +1,93 @@
 #!/usr/bin/python3
 """
-Convert Markdown syntax to HTML.
+this script is to convert the marcdown syntax to html syntax
 """
 
 import sys
 import os
-import re
-import hashlib
 
 
-def apply_inline_formatting(text):
-    """Apply bold, emphasis, md5, and remove-c rules."""
+def convertHeadings(line):
+    headingLevel = line.count("#")
 
-    # Bold: **text**
-    text = re.sub(r"\*\*(.*?)\*\*", r"<b>\1</b>", text)
-
-    # Emphasis: __text__
-    text = re.sub(r"__(.*?)__", r"<em>\1</em>", text)
-
-    # MD5: [[text]]
-    def md5_replace(match):
-        content = match.group(1)
-        return hashlib.md5(content.encode()).hexdigest()
-
-    text = re.sub(r"\[\[(.*?)\]\]", md5_replace, text)
-
-    # Remove letter c/C: ((text))
-    def remove_c(match):
-        content = match.group(1)
-        return re.sub(r"[cC]", "", content)
-
-    text = re.sub(r"\(\((.*?)\)\)", remove_c, text)
-
-    return text
+    if headingLevel >= 1 and headingLevel <= 6:
+        return (f"<h{headingLevel}>"
+                f"{line[headingLevel:].strip()}</h{headingLevel}>")
+    else:
+        return line
 
 
-def convert_headings(line):
-    heading_level = line.count("#")
-    if 1 <= heading_level <= 6:
-        content = apply_inline_formatting(
-            line[heading_level:].strip()
-        )
-        return f"<h{heading_level}>{content}</h{heading_level}>"
-    return None
-
-
-def convert_unordered_list(md_list):
+def convert_unordered_list(marcdown_list):
     html_list = ["<ul>"]
-    for item in md_list:
-        content = apply_inline_formatting(item[1:].strip())
-        html_list.append(f"<li>{content}</li>")
+    for list_item in marcdown_list:
+        html_list.append(f"<li>{list_item[1:].strip()}</li>")
     html_list.append("</ul>")
     return html_list
 
 
-def convert_ordered_list(md_list):
+def convert_ordered_list(marcdown_list):
     html_list = ["<ol>"]
-    for item in md_list:
-        content = apply_inline_formatting(item[1:].strip())
-        html_list.append(f"<li>{content}</li>")
+    for list_item in marcdown_list:
+        html_list.append(f"<li>{list_item[1:].strip()}</li>")
     html_list.append("</ol>")
     return html_list
 
 
-def convert_paragraph(lines):
-    text = " ".join(lines)
-    text = apply_inline_formatting(text)
-    return f"<p>{text}</p>"
-
-
-def main_function(md_file, html_file):
+def mainFunction(fileName, outputFileName):
     html_lines = []
-    list_lines = []
-    in_list = False
+    markdown_list_lines = []
+    paragraph_lines = []
+    in_un = False
+    in_or = False
+    in_paragraph = False
 
-    paragraph = []
-
-    with open(md_file, "r") as file:
+    with open(fileName, "r") as file:
         for line in file:
-            stripped = line.strip()
+            line = line.strip()
+            # headings
+            if line.startswith("#"):
+                html_lines.append(convertHeadings(line))
 
-            # empty line ends paragraph
-            if stripped == "":
-                if paragraph:
-                    html_lines.append(convert_paragraph(paragraph))
-                    paragraph = []
-                continue
+            # unordered lists
+            if line.startswith('-'):
+                markdown_list_lines.append(line)
+                in_un = True
 
-            # Headings
-            if stripped.startswith("#"):
-                if paragraph:
-                    html_lines.append(convert_paragraph(paragraph))
-                    paragraph = []
+            if in_un and not line.startswith('-'):
+                html_lines.extend(convert_unordered_list(markdown_list_lines))
+                markdown_list_lines = []
+                in_un = False
 
-                heading_html = convert_headings(stripped)
-                html_lines.append(heading_html)
-                continue
+            # ordered lists
+            if line.startswith('*'):
+                markdown_list_lines.append(line)
+                in_or = True
+            if in_or and not line.startswith('*'):
+                html_lines.extend(convert_ordered_list(markdown_list_lines))
+                markdown_list_lines = []
+                in_or = False
 
-            # Unordered list
-            if stripped.startswith('-'):
-                if paragraph:
-                    html_lines.append(convert_paragraph(paragraph))
-                    paragraph = []
-
-                list_lines.append(stripped)
-                in_list = True
-                current_list_type = "ul"
-                continue
-
-            # Ordered list
-            if stripped.startswith('*'):
-                if paragraph:
-                    html_lines.append(convert_paragraph(paragraph))
-                    paragraph = []
-
-                list_lines.append(stripped)
-                in_list = True
-                current_list_type = "ol"
-                continue
-
-            # End of list
-            if in_list and not (stripped.startswith('-')
-                                or stripped.startswith('*')):
-                if current_list_type == "ul":
-                    html_lines.extend(convert_unordered_list(list_lines))
-                else:
-                    html_lines.extend(convert_ordered_list(list_lines))
-
-                list_lines = []
-                in_list = False
-
-            # Normal text → paragraph
-            paragraph.append(stripped)
-
-        # End of file cleanup
-        if paragraph:
-            html_lines.append(convert_paragraph(paragraph))
-
-        if in_list:
-            if current_list_type == "ul":
-                html_lines.extend(convert_unordered_list(list_lines))
-            else:
-                html_lines.extend(convert_ordered_list(list_lines))
-
-    with open(html_file, "w") as file:
+        # outside the loop
+        if in_un or in_or:
+            if in_un:
+                html_lines.extend(convert_unordered_list(markdown_list_lines))
+            if in_or:
+                html_lines.extend(convert_ordered_list(markdown_list_lines))
+    with open(outputFileName, "w") as file:
         file.write("\n".join(html_lines))
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print(
-            "Usage: ./markdown2html.py README.md README.html",
-            file=sys.stderr,
-        )
+        print("Usage: ./markdown2html.py README.md README.html",
+              file=sys.stderr)
         sys.exit(1)
 
-    md = sys.argv[1]
-    html = sys.argv[2]
+    fileName = sys.argv[1]
+    outputFileName = sys.argv[2]
 
-    if not os.path.isfile(md):
-        print("Missing " + md, file=sys.stderr)
+    if not os.path.isfile(fileName):
+        print("Missing " + fileName, file=sys.stderr)
         sys.exit(1)
-
-    main_function(md, html)
+    else:
+        mainFunction(fileName, outputFileName)
