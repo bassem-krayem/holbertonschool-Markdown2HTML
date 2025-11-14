@@ -5,6 +5,7 @@ this script is to convert the marcdown syntax to html syntax
 
 import sys
 import os
+import re
 
 
 def convertHeadings(line):
@@ -67,12 +68,26 @@ def mainFunction(fileName, outputFileName):
                 markdown_list_lines = []
                 in_or = False
 
+            # paragraphs
+            if re.match(r'^[A-Za-z0-9]', line):
+                paragraph_lines.append(line)
+                in_paragraph = True
+            if in_paragraph and not re.match(r'^[A-Za-z0-9]', line):
+                for p_line in range(len(paragraph_lines) - 1):
+                    paragraph_lines[p_line] += '<br/>'
+                html_lines.append(f"<p>{''.join(paragraph_lines)}</p>")
+                paragraph_lines = []
+                in_paragraph = False
         # outside the loop
         if in_un or in_or:
             if in_un:
                 html_lines.extend(convert_unordered_list(markdown_list_lines))
             if in_or:
                 html_lines.extend(convert_ordered_list(markdown_list_lines))
+        if in_paragraph:
+            for p_line in range(len(paragraph_lines) - 1):
+                paragraph_lines[p_line] += '<br/>'
+            html_lines.append(f"<p>{''.join(paragraph_lines)}</p>")
     with open(outputFileName, "w") as file:
         file.write("\n".join(html_lines))
 
