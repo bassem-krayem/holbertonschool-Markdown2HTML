@@ -91,7 +91,7 @@ def mainFunction(fileName, outputFileName):
                 in_or = False
 
             # paragraphs
-            if re.match(r'^[A-Za-z0-9]', line):
+            if re.match(r'^[A-Za-z0-9<]', line):
                 paragraph_lines.append(line)
                 in_paragraph = True
             if in_paragraph and not re.match(r'^[A-Za-z0-9]', line):
